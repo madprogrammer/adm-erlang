@@ -1,0 +1,13 @@
+{application, adm, [
+    {description, "An Erlang client for Amazon Device Messaging (ADM)"},
+    {vsn, "1.0.0"},
+    {registered, [adm_sup]},
+    {applications, [
+        kernel,
+        stdlib,
+        inets,
+        lager
+    ]},
+    {mod, {adm_app, []}},
+    {env, []}
+]}.
