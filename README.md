@@ -4,8 +4,10 @@ adm-erlang
 [![Build Status](https://api.travis-ci.org/madprogrammer/adm-erlang.png)](https://travis-ci.org/madprogrammer/adm-erlang)
 
 This software provides an Erlang client for [`AMAZON DEVICE MESSAGING`](https://developer.amazon.com/public/apis/engage/device-messaging "Amazon Device Messaging").
+
 This software is based on [gcm-erlang](https://github.com/pdincau/gcm-erlang) by Paolo D'Incau.
 
+## WARNING: This library is currently in alpha, operation is not guaranteed.
 
 ### What can you already do with adm-erlang:
 
@@ -74,7 +76,7 @@ You can send this message using this sentence:
 In case of errors you can catch the output with a callback function. You only need to start the adm gen_server in this way:
 
     9> Callback = fun(Error, RegId) -> io:format("~p ~p~n", [RegId, Error]) end.
-    10> adm:start(foo, "apikey", Callback).
+    10> adm:start(foo, "clientID", "clientSecret", Callback).
 
 The first param is always a binary with the error and the second param will be a tuple. All of the errors you can handle are in this list:
 
