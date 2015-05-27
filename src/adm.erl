@@ -199,7 +199,7 @@ response_to_binary(Json) when is_binary(Json) ->
 response_to_binary(Json) when is_list(Json) ->
     list_to_binary(Json).
 
-handle_error(Error, RegId) ->
-    lager:error("adm error ~p, ID ~p~n", [Error, RegId]),
+handle_error(Error, Arg) ->
+    lager:error("adm error ~p, arg ~p~n", [Error, Arg]),
     ok.
 

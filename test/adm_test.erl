@@ -23,10 +23,13 @@ stop(_) ->
     adm:stop(test).
 
 adm_message_test_() ->
-    [{"It gets a 200 when message is correct", ?setup(fun send_valid_message/1)},
+    [
+     {"It gets a 200 when message is correct", ?setup(fun send_valid_message/1)},
      {"It gets a 400 when message contains malformed json", ?setup(fun send_malformed_json/1)},
      {"It gets a 401 when message has wrong auth", ?setup(fun send_wrong_auth/1)},
-     {"It gets a 503 when adm servers are down", ?setup(fun send_adm_down/1)}].
+     {"It gets a 503 when adm servers are down", ?setup(fun send_adm_down/1)},
+     {"It returns an error when there is no connection to adm servers", ?setup(fun send_no_connection/1)}
+    ].
 
 send_valid_message(Pid) ->
     meck:expect(httpc, request,
@@ -95,3 +98,15 @@ send_adm_down(Pid) ->
                 {"Validate httpc", ?_assert(meck:validate(httpc))}
                ]
     end.
+
+send_no_connection(Pid) ->
+    meck:expect(httpc, request,
+		fun(post, {_BaseURL, _WrongAuthHeader, "application/json", _JSON}, [], []) ->
+			{error,{failed_connect,[{to_address,{"api.amazon.com",443}}, {inet,[inet],nxdomain}]}}
+		end),
+    Res = adm:sync_push(test, <<"Token">>, [{<<"type">>, <<"wakeUp">>}]),
+    [
+     {"Result is error", ?_assertMatch({error, {failed_connect, _}}, Res)},
+     {"Validate httpc", ?_assert(meck:validate(httpc))}
+    ].
+
