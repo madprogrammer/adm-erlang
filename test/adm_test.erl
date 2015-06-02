@@ -99,7 +99,7 @@ send_adm_down(Pid) ->
                ]
     end.
 
-send_no_connection(Pid) ->
+send_no_connection(_Pid) ->
     meck:expect(httpc, request,
 		fun(post, {_BaseURL, _WrongAuthHeader, "application/json", _JSON}, [], []) ->
 			{error,{failed_connect,[{to_address,{"api.amazon.com",443}}, {inet,[inet],nxdomain}]}}
