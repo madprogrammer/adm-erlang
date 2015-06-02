@@ -158,17 +158,8 @@ do_push(RegId, Message, #state{error_fun = ErrorFun, token = Token, client_id = 
                     % Payload exceeded the maximum allowable size
                     ErrorFun(<<"MessageTooLarge">>, {RegId, Message}),
                     {ok, State};
-                429 ->
-                    % Maximum allowable rate of messages exceeded
-                    lager:error("Maximum message rate exceeded by ~p~n", [ClientID]),
-                    handle_retry(RegId, Message, Headers),
-                    {ok, State};
-                500 ->
-                    lager:error("Internal server error, scheduling retry", []),
-                    handle_retry(RegId, Message, Headers),
-                    {ok, State};
-                503 ->
-                    lager:error("Server is temporarily unavailable, scheduling retry", []),
+                OtherCode when OtherCode == 429 orelse OtherCode == 500 orelse OtherCode == 503 ->
+                    lager:error("Error code ~p received, client ~p~n", [OtherCode, ClientID]),
                     handle_retry(RegId, Message, Headers),
                     {ok, State};
                 _ ->
@@ -185,11 +176,11 @@ do_push(RegId, Message, #state{error_fun = ErrorFun, token = Token, client_id = 
     end.
 
 handle_retry(RegId, Message, Headers) ->
-    RetryAfter = proplists:get_value("retry-after", Headers),
-    case string:to_integer(RetryAfter) of
-        {error, _} ->
+   RetryAfter = retry_after_from(Headers),
+    case RetryAfter of
+        no_retry ->
             ignore;
-        {Int, _} ->
+        Int ->
             erlang:send_after(Int * 1000, self(), {send, RegId, Message})
     end.
 
@@ -198,6 +189,20 @@ response_to_binary(Json) when is_binary(Json) ->
 
 response_to_binary(Json) when is_list(Json) ->
     list_to_binary(Json).
+
+retry_after_from(Headers) ->
+    case proplists:get_value("retry-after", Headers) of
+        undefined ->
+            no_retry;
+        RetryTime ->
+            case string:to_integer(RetryTime) of
+            {Time, _} when is_integer(Time) ->
+                Time;
+            {error, no_integer} ->
+                Date = qdate:to_unixtime(RetryTime),
+                Date - qdate:unixtime()
+            end
+    end.
 
 handle_error(Error, Arg) ->
     lager:error("adm error ~p, arg ~p~n", [Error, Arg]),
