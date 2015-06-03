@@ -7,7 +7,7 @@ This software provides an Erlang client for [`AMAZON DEVICE MESSAGING`](https://
 
 This software is based on [gcm-erlang](https://github.com/pdincau/gcm-erlang) by Paolo D'Incau.
 
-## WARNING: This library is currently in alpha, operation is not guaranteed.
+###### This library is currently in beta, use at your own risk.
 
 ### What can you already do with adm-erlang:
 
